@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { ALLOWED_GENRES } from "@/lib/constants";
+import { Prisma } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   const session = await getSessionUser(req);
@@ -9,12 +10,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = req.nextUrl;
   const genreParam = searchParams.get("genre");
   const favoriteParam = searchParams.get("favorite");
   const qParam = searchParams.get("q");
 
-  const whereClause: any = {
+  const whereClause: Prisma.ReadingLogWhereInput = {
     userId: session.id,
   };
 
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (err: any) {
+  } catch (err) {
     console.error("Create reading log error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

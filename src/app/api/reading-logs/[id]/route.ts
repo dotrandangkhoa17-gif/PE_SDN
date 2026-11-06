@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { ALLOWED_GENRES } from "@/lib/constants";
+import { Prisma } from "@prisma/client";
 
-interface RouteParams {
-  params: { id: string };
-}
-
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getSessionUser(req);
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
   try {
     const body = await req.json();
-    const updateData: any = {};
+    const updateData: Prisma.ReadingLogUpdateInput = {};
 
     if (body.bookTitle !== undefined) {
       if (typeof body.bookTitle !== "string" || !body.bookTitle.trim()) {
@@ -71,9 +71,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     // Check duplicate if title, minutes, or date is changed
-    const targetTitle = updateData.bookTitle ?? existing.bookTitle;
-    const targetMinutes = updateData.minutesRead ?? existing.minutesRead;
-    const targetDate = updateData.readOn ?? existing.readOn;
+    const targetTitle = (typeof updateData.bookTitle === "string" ? updateData.bookTitle : existing.bookTitle);
+    const targetMinutes = (typeof updateData.minutesRead === "number" ? updateData.minutesRead : existing.minutesRead);
+    const targetDate = (typeof updateData.readOn === "string" ? updateData.readOn : existing.readOn);
 
     if (
       updateData.bookTitle !== undefined ||
@@ -116,13 +116,16 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       },
       { status: 200 }
     );
-  } catch (err: any) {
+  } catch (err) {
     console.error("Update reading log error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getSessionUser(req);
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
