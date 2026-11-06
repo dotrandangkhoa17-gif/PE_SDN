@@ -11,18 +11,18 @@ export default function Navbar() {
     <header className="border-b bg-card">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-xl font-bold tracking-tight text-primary">
-          ExpenseTrail
+          ReadLog
         </Link>
 
         <nav className="flex items-center gap-4">
           {user ? (
             <>
               <Link
-                href="/expenses"
-                data-testid="link-expenses"
+                href="/reading-logs"
+                data-testid="link-reading-logs"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
-                Expenses
+                Reading Logs
               </Link>
               <span data-testid="user-email" className="text-sm text-muted-foreground font-medium">
                 {user.email}
@@ -55,4 +55,3 @@ export default function Navbar() {
     </header>
   );
 }
-

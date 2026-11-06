@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Wallet, PieChart, Tag, ArrowRight } from "lucide-react";
+import { BookOpen, BookmarkCheck, BarChart3, ArrowRight } from "lucide-react";
 
 export default function HomePage() {
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
       <div className="text-center space-y-4 mb-16">
         <h1 data-testid="home-title" className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-          ExpenseTrail
+          ReadLog
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          A smart, simple way to track your personal spending, categorize expenses, and see where your money goes.
+          A personal reading session tracker: keep track of what books you read, how many minutes you spent, what genre, and your favorite sessions.
         </p>
         <div className="pt-4 flex justify-center gap-4">
           <Link href="/register">
@@ -30,44 +30,43 @@ export default function HomePage() {
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="shadow-sm">
           <CardHeader>
-            <Wallet className="h-8 w-8 text-primary mb-2" />
-            <CardTitle>Track spending</CardTitle>
+            <BookOpen className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>Log every session</CardTitle>
             <CardDescription>
-              Log each expense with its title, amount, date, and custom notes in seconds.
+              Record each reading session with the book title, minutes read, date, and notes.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Never lose track of where your hard-earned money went with immediate updates.
+            Never lose track of your reading habits and daily progress.
           </CardContent>
         </Card>
 
         <Card className="shadow-sm">
           <CardHeader>
-            <Tag className="h-8 w-8 text-primary mb-2" />
-            <CardTitle>Sort into categories</CardTitle>
+            <BookmarkCheck className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>Sort by genre</CardTitle>
             <CardDescription>
-              Organize purchases into Food, Transport, Bills, Shopping, and Other.
+              Categorize sessions into Fiction, Non-Fiction, Sci-Fi, Biography, and Other.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Filter instantly by category or search through notes with flexible controls.
+            Instant filtering by genre or book title with quick search controls.
           </CardContent>
         </Card>
 
         <Card className="shadow-sm">
           <CardHeader>
-            <PieChart className="h-8 w-8 text-primary mb-2" />
-            <CardTitle>See where it goes</CardTitle>
+            <BarChart3 className="h-8 w-8 text-primary mb-2" />
+            <CardTitle>See minutes read</CardTitle>
             <CardDescription>
-              Real-time summary breakdown showing totals and counts by category.
+              Live summary breakdown calculating total minutes read per genre.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Star important expenses and monitor total spending at a glance.
+            Mark your favorite reading sessions and see detailed reading metrics.
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-

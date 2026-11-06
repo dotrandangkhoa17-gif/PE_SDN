@@ -77,7 +77,7 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (result.success) {
-      router.push("/expenses");
+      router.push("/reading-logs");
     } else {
       setServerError(result.error || "Invalid email or password");
     }
