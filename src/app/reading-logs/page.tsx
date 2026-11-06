@@ -3,12 +3,23 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { useReadingLogs } from "@/context/ReadingLogContext";
+import { useReadingLogs, ReadingLogItem } from "@/context/ReadingLogContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bookmark, Trash2, Search, RotateCcw, BookOpen, Clock, Sparkles } from "lucide-react";
+import {
+  Bookmark,
+  Trash2,
+  Search,
+  RotateCcw,
+  BookOpen,
+  Clock,
+  Sparkles,
+  Pencil,
+  X,
+  Check,
+} from "lucide-react";
 import { ALLOWED_GENRES } from "@/lib/constants";
 
 export default function ReadingLogsPage() {
@@ -25,18 +36,19 @@ export default function ReadingLogsPage() {
     setSearchQuery,
     clearFilters,
     addReadingLog,
+    updateReadingLog,
     toggleFavorite,
     deleteReadingLog,
   } = useReadingLogs();
 
-  // Form states
+  // Add Form states
   const [bookTitle, setBookTitle] = useState("");
   const [minutesRead, setMinutesRead] = useState("");
   const [genre, setGenre] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
 
-  // Validation error states
+  // Add Form Validation error states
   const [titleError, setTitleError] = useState("");
   const [minutesError, setMinutesError] = useState("");
   const [genreError, setGenreError] = useState("");
@@ -46,6 +58,21 @@ export default function ReadingLogsPage() {
 
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Edit Modal states
+  const [editingItem, setEditingItem] = useState<ReadingLogItem | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editMinutes, setEditMinutes] = useState("");
+  const [editGenre, setEditGenre] = useState("");
+  const [editNote, setEditNote] = useState("");
+  const [editDate, setEditDate] = useState("");
+
+  const [editTitleError, setEditTitleError] = useState("");
+  const [editMinutesError, setEditMinutesError] = useState("");
+  const [editGenreError, setEditGenreError] = useState("");
+  const [editDateError, setEditDateError] = useState("");
+  const [editApiError, setEditApiError] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Authentication check: redirect to /login if not authenticated
   useEffect(() => {
@@ -176,6 +203,103 @@ export default function ReadingLogsPage() {
     }
   };
 
+  // Open Edit Modal
+  const handleOpenEdit = (item: ReadingLogItem) => {
+    setEditingItem(item);
+    setEditTitle(item.bookTitle);
+    setEditMinutes(String(item.minutesRead));
+    setEditGenre(item.genre);
+    setEditNote(item.note);
+    setEditDate(item.readOn);
+
+    setEditTitleError("");
+    setEditMinutesError("");
+    setEditGenreError("");
+    setEditDateError("");
+    setEditApiError("");
+  };
+
+  // Close Edit Modal
+  const handleCloseEdit = () => {
+    setEditingItem(null);
+    setEditApiError("");
+  };
+
+  // Submit Edit Form
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    setEditApiError("");
+    let isValid = true;
+
+    // Validate Edit fields
+    const trimmedTitle = editTitle.trim();
+    if (!trimmedTitle) {
+      setEditTitleError("Book title is required");
+      isValid = false;
+    } else if (trimmedTitle.length > 80) {
+      setEditTitleError("Book title must be at most 80 characters");
+      isValid = false;
+    } else {
+      setEditTitleError("");
+    }
+
+    if (!editMinutes || editMinutes.trim() === "" || isNaN(Number(editMinutes))) {
+      setEditMinutesError("Minutes read is required");
+      isValid = false;
+    } else {
+      const numMin = Number(editMinutes);
+      if (!Number.isInteger(numMin) || numMin <= 0) {
+        setEditMinutesError("Minutes read must be a positive number");
+        isValid = false;
+      } else {
+        setEditMinutesError("");
+      }
+    }
+
+    if (!editGenre) {
+      setEditGenreError("Please choose a genre");
+      isValid = false;
+    } else if (!ALLOWED_GENRES.includes(editGenre as any)) {
+      setEditGenreError("Invalid genre");
+      isValid = false;
+    } else {
+      setEditGenreError("");
+    }
+
+    if (!editDate) {
+      setEditDateError("Date is required");
+      isValid = false;
+    } else {
+      const todayStr = new Date().toISOString().split("T")[0];
+      if (editDate > todayStr) {
+        setEditDateError("Date cannot be in the future");
+        isValid = false;
+      } else {
+        setEditDateError("");
+      }
+    }
+
+    if (!isValid) return;
+
+    setIsUpdating(true);
+    const result = await updateReadingLog(editingItem.id, {
+      bookTitle: trimmedTitle,
+      minutesRead: parseInt(editMinutes, 10),
+      genre: editGenre,
+      note: editNote.trim(),
+      readOn: editDate,
+    });
+    setIsUpdating(false);
+
+    if (result.success) {
+      handleCloseEdit();
+    } else {
+      setEditApiError(result.error || "Failed to update reading log");
+    }
+  };
+
   const getGenreColor = (g: string) => {
     switch (g) {
       case "Fiction":
@@ -194,7 +318,7 @@ export default function ReadingLogsPage() {
   return (
     <div
       data-testid="reading-logs-page"
-      className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-sky-50/50 via-white to-sky-50/30 py-8 px-4 sm:px-6"
+      className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-sky-50/50 via-white to-sky-50/30 py-8 px-4 sm:px-6 relative"
     >
       <div className="container mx-auto max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -529,6 +653,19 @@ export default function ReadingLogsPage() {
                       </div>
 
                       <div className="flex items-center gap-1.5">
+                        {/* Edit Button */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenEdit(item)}
+                          className="h-9 w-9 rounded-xl text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                          title="Edit reading session"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+
+                        {/* Favorite Button */}
                         <Button
                           type="button"
                           variant="ghost"
@@ -546,6 +683,7 @@ export default function ReadingLogsPage() {
                           <Bookmark className={`h-4 w-4 ${item.favorite ? "fill-current" : ""}`} />
                         </Button>
 
+                        {/* Delete Button */}
                         <Button
                           type="button"
                           variant="ghost"
@@ -566,6 +704,134 @@ export default function ReadingLogsPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Reading Session Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg border-sky-100 shadow-2xl rounded-2xl bg-white p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-sky-50">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
+                  <Pencil className="h-4 w-4" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800">Edit Reading Session</h3>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleCloseEdit}
+                className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {editApiError && (
+              <div className="p-3 text-sm rounded-xl bg-red-50 text-red-600 border border-red-200 font-medium">
+                {editApiError}
+              </div>
+            )}
+
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              {/* Edit Book Title */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Book Title *</label>
+                <Input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="e.g. Atomic Habits"
+                  className="rounded-xl border-sky-100 focus:border-sky-400 focus:ring-sky-400/20"
+                />
+                {editTitleError && (
+                  <p className="text-xs text-red-600 font-medium">{editTitleError}</p>
+                )}
+              </div>
+
+              {/* Edit Minutes Read */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Minutes Read *</label>
+                <Input
+                  type="number"
+                  step="1"
+                  value={editMinutes}
+                  onChange={(e) => setEditMinutes(e.target.value)}
+                  placeholder="e.g. 40"
+                  className="rounded-xl border-sky-100 focus:border-sky-400 focus:ring-sky-400/20"
+                />
+                {editMinutesError && (
+                  <p className="text-xs text-red-600 font-medium">{editMinutesError}</p>
+                )}
+              </div>
+
+              {/* Edit Genre */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Genre *</label>
+                <select
+                  value={editGenre}
+                  onChange={(e) => setEditGenre(e.target.value)}
+                  className="flex h-10 w-full rounded-xl border border-sky-100 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus-visible:outline-none focus-visible:border-sky-400 focus-visible:ring-2 focus-visible:ring-sky-400/20"
+                >
+                  <option value="">Choose genre</option>
+                  {ALLOWED_GENRES.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+                {editGenreError && (
+                  <p className="text-xs text-red-600 font-medium">{editGenreError}</p>
+                )}
+              </div>
+
+              {/* Edit Note */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Note (Optional)</label>
+                <Input
+                  value={editNote}
+                  onChange={(e) => setEditNote(e.target.value)}
+                  placeholder="e.g. Chapter 3 takeaways"
+                  className="rounded-xl border-sky-100 focus:border-sky-400 focus:ring-sky-400/20"
+                />
+              </div>
+
+              {/* Edit Date */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Date *</label>
+                <Input
+                  type="date"
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="rounded-xl border-sky-100 focus:border-sky-400 focus:ring-sky-400/20"
+                />
+                {editDateError && (
+                  <p className="text-xs text-red-600 font-medium">{editDateError}</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseEdit}
+                  className="border-sky-200 text-slate-700 hover:bg-sky-50 rounded-xl"
+                  disabled={isUpdating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white shadow-md shadow-sky-500/20 rounded-xl gap-1.5"
+                  disabled={isUpdating}
+                >
+                  <Check className="h-4 w-4" />
+                  <span>{isUpdating ? "Saving..." : "Save Changes"}</span>
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
