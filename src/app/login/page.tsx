@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { BookOpen } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -84,11 +85,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-8">
-      <Card className="w-full max-w-md shadow-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-          <CardDescription>Enter your credentials to access your expenses</CardDescription>
+    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-gradient-to-b from-sky-50/60 via-white to-sky-50/40">
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[250px] bg-sky-200/40 rounded-full blur-3xl pointer-events-none -z-10" />
+
+      <Card className="w-full max-w-md border-sky-100 shadow-xl shadow-sky-500/5 rounded-2xl bg-white/95 backdrop-blur">
+        <CardHeader className="space-y-2 text-center pb-6">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-cyan-400 text-white shadow-md shadow-sky-500/20 mb-1">
+            <BookOpen className="h-6 w-6" />
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight text-slate-800">Sign In to ReadLog</CardTitle>
+          <CardDescription className="text-slate-500">Access your personal reading sessions and analytics</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -100,14 +106,14 @@ export default function LoginPage() {
             {serverError && (
               <div
                 data-testid="error-auth"
-                className="p-3 text-sm rounded bg-destructive/15 text-destructive font-medium"
+                className="p-3 text-sm rounded-xl bg-red-50 text-red-600 border border-red-200 font-medium"
               >
                 {serverError}
               </div>
             )}
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="email">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700" htmlFor="email">
                 Email
               </label>
               <Input
@@ -117,16 +123,17 @@ export default function LoginPage() {
                 value={email}
                 onChange={handleEmailChange}
                 placeholder="you@example.com"
+                className="rounded-xl border-sky-100 focus:border-sky-400 focus:ring-sky-400/20"
               />
               {emailError && (
-                <p data-testid="error-email" className="text-xs text-destructive mt-1 font-medium">
+                <p data-testid="error-email" className="text-xs text-red-600 mt-1 font-medium">
                   {emailError}
                 </p>
               )}
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium" htmlFor="password">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700" htmlFor="password">
                 Password
               </label>
               <Input
@@ -136,9 +143,10 @@ export default function LoginPage() {
                 value={password}
                 onChange={handlePasswordChange}
                 placeholder="••••••••"
+                className="rounded-xl border-sky-100 focus:border-sky-400 focus:ring-sky-400/20"
               />
               {passwordError && (
-                <p data-testid="error-password" className="text-xs text-destructive mt-1 font-medium">
+                <p data-testid="error-password" className="text-xs text-red-600 mt-1 font-medium">
                   {passwordError}
                 </p>
               )}
@@ -147,15 +155,15 @@ export default function LoginPage() {
             <Button
               type="submit"
               data-testid="login-submit"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white shadow-md shadow-sky-500/20 rounded-xl h-11 font-medium transition-all"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Signing In..." : "Sign In"}
             </Button>
 
-            <div className="text-center text-sm text-muted-foreground pt-2">
+            <div className="text-center text-sm text-slate-500 pt-2">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline font-medium">
+              <Link href="/register" className="text-sky-600 hover:text-sky-700 font-semibold hover:underline">
                 Register
               </Link>
             </div>
@@ -165,4 +173,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
